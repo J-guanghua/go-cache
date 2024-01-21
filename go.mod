@@ -1,4 +1,4 @@
-module github.com/J-guanghua/cache
+module github.com/J-guanghua/go-cache
 
 go 1.16
 
