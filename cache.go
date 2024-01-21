@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/J-guanghua/cache/store"
+	"github.com/J-guanghua/go-cache/store"
 )
 
 const(
