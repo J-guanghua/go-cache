@@ -7,26 +7,35 @@ import (
 )
 
 type (
-	Options func(c *cache)
-	VFunc func(ctx context.Context) (interface{}, error)
+	Option     func(c *cache)
+	VFunc      func(ctx context.Context) (interface{}, error)
 	CallOption interface {
 		before(context.Context,Envet) error
 		after(context.Context,Envet)
 	}
+	Envet interface {
+		Err() error
+		Name() string
+		Key() string
+		Method() string
+		Value() []byte
+		Extpiex () time.Duration
+		SetExtpiex(extpiex time.Duration)
+	}
 )
-func Name(name string) Options {
+func Name(name string) Option {
 	return func(c *cache) {
 		c.name = name
 	}
 }
 
-func Calls(call ...CallOption) Options {
+func Calls(call ...CallOption) Option {
 	return func(c *cache){
 		c.calls = call
 	}
 }
 
-func Extpiex(extpiex time.Duration) Options {
+func Extpiex(extpiex time.Duration) Option {
 	return func(c *cache){
 		c. extpiex = extpiex
 	}
