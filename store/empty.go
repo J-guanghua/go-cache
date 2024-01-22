@@ -7,23 +7,25 @@ import (
 
 // Implement an empty storage interface
 // 使用 empty 通过配置项在不改变任何业务代码情况下关闭服务缓存
-type emptyStore struct {}
+type emptyStore string
 
 func NewEmpty() Store {
-	return &emptyStore{}
+	var empty emptyStore
+	return &empty
 }
 
-func (es *emptyStore) Get(ctx context.Context, key string) ([]byte, error) {
+func (empty *emptyStore) Get(_ context.Context, _ string) ([]byte, error) {
 	return nil, ErrNotFound
 }
 
-func (es *emptyStore) Set(ctx context.Context, key string, value []byte, expiration time.Duration)error {
+func (empty *emptyStore) Set(_ context.Context, _ string, _ []byte, _ time.Duration) error {
 	return nil
 }
 
-func (rs *emptyStore) Del(ctx context.Context, key string) error {
+func (empty *emptyStore) Del(_ context.Context, _ string) error {
 	return nil
 }
-func (rs *emptyStore) Flush(ctx context.Context, prefix string) error {
+
+func (empty *emptyStore) Flush(_ context.Context, _ string) error {
 	return nil
 }
