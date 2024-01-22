@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+
+	"github.com/J-guanghua/go-cache/store"
 )
 
 type (
@@ -42,6 +44,12 @@ func Extpiex(extpiex time.Duration) Option {
 	}
 }
 
+func Store(store store.Store) Option {
+	return func(c *cache) {
+		c.store = store
+	}
+}
+
 type codec string
 
 type Codec interface {
@@ -69,21 +77,27 @@ type envet struct {
 func (e *envet) Name() string {
 	return e.name
 }
+
 func (e *envet) Key() string {
 	return e.key
 }
+
 func (e *envet) Method() string {
 	return e.method
 }
+
 func (e *envet) Err() error {
 	return e.err
 }
+
 func (e *envet) Value() []byte {
 	return e.value
 }
+
 func (e *envet) Extpiex() time.Duration {
 	return e.extpiex
 }
+
 func (e *envet) SetExtpiex(extpiex time.Duration) {
 	e.extpiex = extpiex
 }

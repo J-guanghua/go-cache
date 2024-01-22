@@ -5,13 +5,15 @@ import (
 	"strings"
 )
 
-type Key string
-type Label string
+type (
+	Key string
+	Label string
+)
 
 func (k Key) Join(keys ...interface{}) string {
 	return strings.Join([]string{k.string(), fmt.Sprint(keys...)}, "")
 }
 
 func (k Key) string() string {
-	return fmt.Sprintf("%s.", k)
+	return fmt.Sprintf("%s:", k)
 }

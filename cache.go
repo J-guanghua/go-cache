@@ -11,12 +11,6 @@ import (
 	"github.com/J-guanghua/go-cache/store"
 )
 
-const (
-	extpiexKey = iota
-)
-
-type cacheCtx struct{ context.Context }
-
 type Cache interface {
 	// 获取key,并将key对于的值映射到v对象,v可以是任何数据类型
 	Get(ctx context.Context, key string, v interface{}) error
@@ -32,20 +26,20 @@ type Cache interface {
 
 // Cache 对象
 type cache struct {
-	name    string                  // name 用于区分不同服务|模块key可能存在的冲突
+	name    string                  // name 标识名称
 	keyFunc func(key string) string // Key 自定义string算法
 	store   store.Store             // 只需要适配 store接口, 可支持yaml自定义配置
 	extpiex time.Duration           // 默认缓存失效时间
-	codec   Codec                   //自定义序列化对象
+	codec   Codec                   // 自定义序列化对象
 	calls   []CallOption
 }
 
-func NewCache(store store.Store, options ...Option) Cache {
-	var codec = codec("json")
+func NewCache(options ...Option) Cache {
+	codec := codec("json")
 	c := &cache{
-		name:    "global",
+		name:    "app",
 		codec:   &codec,
-		store:   store,
+		store:   store.NewMemory(),
 		extpiex: 5 * time.Second,
 	}
 	for _, opt := range options {
@@ -163,7 +157,7 @@ func (c *cache) allocation(ctx context.Context, fv, v interface{}) (err error) {
 			buf := make([]byte, 64<<10) //nolint:gomnd
 			n := runtime.Stack(buf, false)
 			buf = buf[:n]
-			err = fmt.Errorf("%v: \n%s\n", r, buf)
+			err = fmt.Errorf("%v: %s\n", r, buf)
 		}
 	}()
 	if reflect.TypeOf(fv).Kind() != reflect.Ptr {
