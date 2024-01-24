@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	Key string
+	Key   string
 	Label string
 )
 
