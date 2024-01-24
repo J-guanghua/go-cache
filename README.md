@@ -33,76 +33,79 @@ To compile it from source:
         "github.com/J-guanghua/go-cache/store"
     )
 
-    // default new memory cache
-    cache := cache.NewCache()
-    // new file cache
-    cache := cache.NewCache(
-    	cache.Name("app"),
-    	cache.Store(store.NewFile())
+    // new a cache object
+    caches := cache.NewCache()
+    
+    // new a file cache object
+    caches = cache.NewCache(cache.Store(store.NewFile(store.Directory("./cache"))))
+    
+    // new a redis cache object
+    caches = cache.NewCache(cache.Store(
+        store.NewRedis(redis.NewClient(&redis.Options{
+            Network: "tcp",
+            Addr: "127.0.0.1:3306",
+        }))),
     )
-    // new redis cache
-    cache := cache.NewCache(
-        cache.Name("app"),
-        cache.Store(store.NewRedis())
-    )
-    // new empty cache
-	cache := cache.NewCache(
-        cache.Name("app"),
-        cache.Store(store.NewEmpty())
-    )
+    // Turn off cache
+    caches = cache.NewCache(cache.Store(store.NewEmpty()))
+        
 ```
 ### New
 ```go
-    //本地测试过程f1le效率高于redis很多
-    type user struct{
-        ID int `json:"id"`
-        Age int `json:"age"`
-        Name string`json:"name"`
-    }
-    
-    cache := cache.NewCache(cache.Name("app"))
 
-    var user = user{}
-    err := cache.Set(ctx,"user1",user)
-    if err != nil {
-        t.Error(err)
-    }
-    err = cache.Get(ctx,"user1",&user)
-    if err != nil {
-    	t.Error(err)
-    }
-    err = cache.Del(ctx,"user1")
+ctx := context.Background()
+var value = map[string]interface{}{}
+var user = map[string]interface{}{"name":"张三"}
 
+caches.Set(ctx,cache.Key("user").Join(1),user)
+err := caches.Get(ctx,cache.Key("user").Join(1),&value)
+if err != nil {
+    panic(err)
+}
+fmt.Println(value)
+
+var text string
+err = caches.Take(ctx,"message", func(ctx context.Context) (interface{}, error) {
+    return "Hello world",nil
+},&text)
+if err != nil {
+    panic(err)
+}
+fmt.Println(text)
 ```
 ## Example
 ```go
 package main
 
 import (
-	"fmt"
-	"log"
 	"context"
-	"github.com/J-guanghua/cache"
+	"fmt"
+	"github.com/J-guanghua/go-cache"
+	"github.com/J-guanghua/go-cache/store"
+	"log"
 )
 
-// Keys & values in cache2go can be of arbitrary types, e.g. a struct.
+// user struct
 type user struct{
 	ID int `json:"id"`
 	Age int `json:"age"`
 	Name string`json:"name"`
 }
+
+// user model
 type Users struct{
 	user cache.Key
 	cache cache.Cache
 	data map[int]user
 }
+
 // 获取suer对象
 func(u *Users) getUser(ctx context.Context,id int)(user,error){
 	var user user
 	return user,u.cache.Take(ctx,u.user.Join(id),func(ctx context.Context)(interface{},error){
-		if us,ok :=u.users[id];ok {
-			defer u.cache.Set(ctx,"user=test24555",id*900)
-			defer u.cache.Set(ctx,u.table.Join("test2",us),us.Age/3)
+		if us,ok :=u.data[id];ok {
+			defer u.cache.Set(ctx,"name",us.Name)
+			defer u.cache.Set(ctx,u.user.Join("age",id),us.Age)
 			log.Println(id,"执行数据user查询…………")
 			return us,nil
 		}
@@ -113,19 +116,20 @@ func(u *Users) getUser(ctx context.Context,id int)(user,error){
 func main() {
 	users := &Users{
 		user:cache.Key("users"),
-		cache:cache.NewCache(cache.Calls(&cache.Logs{log: log.New(os.Stderr,"",1)},cache.NewStat())),
+		cache:cache.NewCache(cache.Store(store.NewFile()),cache.Calls(cache.NewLog())),
 		data: map[int]user{
 			1:  user{1, 11, "test1"},
 			2:  user{2, 12, "test2"},
 		},
-    }
-	//清除user缓存
+	}
+	ctx := context.Background()
+	// 清除user缓存
 	defer users.cache.Flush(ctx,users.user)
 	// 获取suer对象
-	user,err := users.getUser(ctx,users.user.Jion(2))
+	user,err := users.getUser(ctx,2)
 	if err != nil {
 		panic(err)
-    }
+	}
 	log.Println(user)
 }
 ```
