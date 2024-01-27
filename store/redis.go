@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -20,23 +21,29 @@ func NewRedis(client redis.Cmdable) Store {
 	}
 }
 
-func (redis *redisStore) Get(ctx context.Context, key string) ([]byte, error) {
-	return redis.client.Get(ctx, key).Bytes()
+func (red *redisStore) Get(ctx context.Context, key string) ([]byte, error) {
+	b, err := red.client.Get(ctx, key).Bytes()
+	if errors.Is(err, redis.Nil) {
+		return nil, ErrNotFound
+	} else if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
-func (redis *redisStore) Set(ctx context.Context, key string, value []byte, expiration time.Duration) error {
-	return redis.client.Set(ctx, key, value, expiration).Err()
+func (red *redisStore) Set(ctx context.Context, key string, value []byte, expiration time.Duration) error {
+	return red.client.Set(ctx, key, value, expiration).Err()
 }
 
-func (redis *redisStore) Del(ctx context.Context, key string) error {
-	return redis.client.Del(ctx, key).Err()
+func (red *redisStore) Del(ctx context.Context, key string) error {
+	return red.client.Del(ctx, key).Err()
 }
 
-func (redis *redisStore) Flush(ctx context.Context, prefix string) error {
+func (red *redisStore) Flush(ctx context.Context, prefix string) error {
 	prefix = strings.Trim(prefix, "*") + "*"
-	keys, err := redis.client.Keys(ctx, prefix).Result()
+	keys, err := red.client.Keys(ctx, prefix).Result()
 	if err != nil {
 		return err
 	}
-	return redis.client.Del(ctx, keys...).Err()
+	return red.client.Del(ctx, keys...).Err()
 }

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -59,9 +60,12 @@ func NewFile(opts ...FileOption) Store {
 func (file *fileStore) Get(ctx context.Context, name string) ([]byte, error) {
 	name = file.buildFile(ctx, name)
 	f, err := os.Open(name)
-	if err != nil {
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, ErrNotFound
+	} else if err != nil {
 		return nil, err
 	}
+
 	defer f.Close()
 	fi, err := f.Stat()
 	if err != nil {

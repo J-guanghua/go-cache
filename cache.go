@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"runtime"
 	"strings"
 	"time"
 
-	"github.com/J-guanghua/go-cache/store"
 	"github.com/J-guanghua/go-cache/calls"
+	"github.com/J-guanghua/go-cache/store"
 )
 
 var ErrNotFound = store.ErrNotFound
@@ -164,13 +163,10 @@ func (c *cache) Take(ctx context.Context, key string, fn VFunc, v interface{}) e
 	return nil
 }
 
-func (c *cache) allocation(ctx context.Context, fv, v interface{}) (err error) {
+func (c *cache) allocation(_ context.Context, fv, v interface{}) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			buf := make([]byte, 64<<10) //nolint:gomnd
-			n := runtime.Stack(buf, false)
-			buf = buf[:n]
-			err = fmt.Errorf("%v: %s\n", r, buf)
+			err = fmt.Errorf("%v", r)
 		}
 	}()
 	if reflect.TypeOf(fv).Kind() != reflect.Ptr {
@@ -178,5 +174,5 @@ func (c *cache) allocation(ctx context.Context, fv, v interface{}) (err error) {
 	} else {
 		reflect.ValueOf(v).Elem().Set(reflect.ValueOf(fv).Elem())
 	}
-	return err
+	return nil
 }

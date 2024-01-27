@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/J-guanghua/go-cache/store"
 	"github.com/J-guanghua/go-cache/calls"
+	"github.com/J-guanghua/go-cache/store"
 )
 
 func testCache() Cache {
