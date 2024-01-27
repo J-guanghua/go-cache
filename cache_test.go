@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/J-guanghua/go-cache/store"
+	"github.com/J-guanghua/go-cache/calls"
 )
 
 func testCache() Cache {
 	return NewCache(
 		Store(store.NewMemory()),
-		Calls(NewLog()),
+		Calls(calls.NewLog()),
 	)
 }
 

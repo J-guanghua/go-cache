@@ -5,25 +5,13 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/J-guanghua/go-cache/calls"
 	"github.com/J-guanghua/go-cache/store"
 )
 
 type (
-	Option     func(c *cache)
-	VFunc      func(ctx context.Context) (interface{}, error)
-	CallOption interface {
-		before(context.Context, Action) error
-		after(context.Context, Action)
-	}
-	Action interface {
-		Err() error
-		Name() string
-		Key() string
-		Method() string
-		Value() []byte
-		Extpiex() time.Duration
-		SetExtpiex(extpiex time.Duration)
-	}
+	Option func(c *cache)
+	VFunc  func(ctx context.Context) (interface{}, error)
 )
 
 func Name(name string) Option {
@@ -32,7 +20,7 @@ func Name(name string) Option {
 	}
 }
 
-func Calls(call ...CallOption) Option {
+func Calls(call ...calls.CallOption) Option {
 	return func(c *cache) {
 		c.calls = call
 	}

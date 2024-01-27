@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/J-guanghua/go-cache/store"
+	"github.com/J-guanghua/go-cache/calls"
 )
 
 var ErrNotFound = store.ErrNotFound
@@ -33,7 +34,7 @@ type cache struct {
 	store   store.Store             // 只需要适配 store接口, 可支持yaml自定义配置
 	extpiex time.Duration           // 默认缓存失效时间
 	codec   Codec                   // 自定义序列化对象
-	calls   []CallOption
+	calls   []calls.CallOption
 }
 
 func NewCache(options ...Option) Cache {
@@ -50,7 +51,7 @@ func NewCache(options ...Option) Cache {
 	return c
 }
 
-func (c *cache) buildKey(ctx context.Context, key string) string {
+func (c *cache) buildKey(_ context.Context, key string) string {
 	if keys := strings.Split(key, "#"); len(keys) <= 1 {
 		key = "default#" + key
 	}
@@ -62,7 +63,7 @@ func (c *cache) buildKey(ctx context.Context, key string) string {
 
 func (c *cache) before(ctx context.Context, in *action) error {
 	for _, o := range c.calls {
-		if err := o.before(ctx, in); err != nil {
+		if err := o.Before(ctx, in); err != nil {
 			return err
 		}
 	}
@@ -71,7 +72,7 @@ func (c *cache) before(ctx context.Context, in *action) error {
 
 func (c *cache) after(ctx context.Context, in *action) {
 	for _, o := range c.calls {
-		o.after(ctx, in)
+		o.After(ctx, in)
 	}
 }
 

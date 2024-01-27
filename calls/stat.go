@@ -1,4 +1,4 @@
-package cache
+package calls
 
 import (
 	"context"
@@ -28,11 +28,13 @@ type cacheStat struct {
 	errTotal uint64 // 失败次数
 	errs     map[string]int64
 	method   map[string]*statTop // key top 统计分析
+	ch       chan struct{}
 }
 
 func NewStat() *cacheStat {
 	return &cacheStat{
 		errs: map[string]int64{},
+		ch:   make(chan struct{}, 10000),
 		method: map[string]*statTop{
 			"GET":    {keyTop: make(map[string]int64, 100)},
 			"SET":    {keyTop: make(map[string]int64, 100)},
@@ -41,13 +43,15 @@ func NewStat() *cacheStat {
 	}
 }
 
-func (stat *cacheStat) before(ctx context.Context, envet Action) error {
+func (stat *cacheStat) Before(ctx context.Context, envet Action) error {
 	stat.total++
 	stat.method[envet.Method()].before(envet)
+	stat.ch <- struct{}{}
 	return nil
 }
 
-func (stat *cacheStat) after(ctx context.Context, envet Action) {
+func (stat *cacheStat) After(ctx context.Context, envet Action) {
+	<-stat.ch
 	if err := envet.Err(); err != nil {
 		stat.errTotal++
 		stat.errs[err.Error()]++

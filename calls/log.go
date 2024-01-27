@@ -3,31 +3,22 @@ package calls
 import (
 	"context"
 	"log"
-	"time"
-)
-
-type (
-	Envet interface {
-		Name() string
-		Err() error
-		Key() string
-		Method() string
-		Value() []byte
-		Extpiex ()time.Duration
-	}
+	"os"
 )
 
 type Logs struct {
-	log log.Logger
+	log *log.Logger
 }
 
-func (l *Logs) before(ctx context.Context,envet Envet) error {
-	l.log.Printf("log.before: name = %v,key = %v ,method = %v,v = %v,err = %v",
-		envet.Name(),envet.Name(),envet.Key(),envet.Method(),envet.Err())
+func NewLog() *Logs {
+	return &Logs{log: log.New(os.Stderr, "", 1)}
+}
+
+func (l Logs) Before(_ context.Context, a Action) error {
+	l.log.Printf("log.before: name(%v),key(%v) ,method(%v),v(%v),err(%v)",
+		a.Name(), a.Key(), a.Method(), string(a.Value()), a.Err())
 	return nil
 }
 
-func (l *Logs) after(ctx context.Context,envet Envet) {
-	l.log.Printf("log.before: name = %v,key = %v ,method = %v,v = %v,err = %v",
-		envet.Name(),envet.Name(),envet.Key(),envet.Method(),envet.Err())
+func (l Logs) After(_ context.Context, _ Action) {
 }
