@@ -51,8 +51,8 @@ func NewCache(options ...Option) Cache {
 }
 
 func (c *cache) buildKey(ctx context.Context, key string) string {
-	if keys := strings.Split(key, "="); len(keys) <= 1 {
-		key = "default=" + key
+	if keys := strings.Split(key, "#"); len(keys) <= 1 {
+		key = "default#" + key
 	}
 	if c.keyFunc != nil {
 		key = c.keyFunc(key)
@@ -137,10 +137,10 @@ func (c *cache) Del(ctx context.Context, key string) error {
 func (c *cache) Flush(ctx context.Context, pattern Key) error {
 	in := &action{
 		name:   c.name,
-		key:    pattern.string(),
+		key:    pattern.Name(),
 		method: "FLUSH",
 	}
-	key := c.buildKey(ctx, pattern.string())
+	key := c.buildKey(ctx, pattern.Name())
 	if err := c.before(ctx, in); err != nil {
 		return err
 	}

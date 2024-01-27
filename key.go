@@ -11,9 +11,9 @@ type (
 )
 
 func (k Key) Join(keys ...interface{}) string {
-	return strings.Join([]string{k.string(), fmt.Sprint(keys...)}, "")
+	return strings.Join([]string{k.Name(), fmt.Sprint(keys...)}, "")
 }
 
-func (k Key) string() string {
-	return fmt.Sprintf("%s=", k)
+func (k Key) Name() string {
+	return fmt.Sprintf("%s#", k)
 }

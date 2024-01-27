@@ -12,7 +12,6 @@ import (
 
 func testCache() Cache {
 	return NewCache(
-		Name("app"),
 		Store(store.NewMemory()),
 		Calls(NewLog()),
 	)
@@ -113,7 +112,7 @@ func TestDifferentDataTypes(t *testing.T) {
 			key:  "struct",
 			value: struct {
 				ID   int64             `json:"id"`
-				Name string            `json:"name"`
+				Name string            `json:"Name"`
 				Data map[string]string `json:"data"`
 			}{
 				ID:   2,
@@ -122,7 +121,7 @@ func TestDifferentDataTypes(t *testing.T) {
 			wantFunc: func(t *testing.T, key string) interface{} {
 				want := struct {
 					ID   int64             `json:"id"`
-					Name string            `json:"name"`
+					Name string            `json:"Name"`
 					Data map[string]string `json:"data"`
 				}{}
 				err := c.Get(ctx, key, &want)
@@ -135,7 +134,7 @@ func TestDifferentDataTypes(t *testing.T) {
 		{
 			name:  "map 验证",
 			key:   "map",
-			value: map[string]string{"name": "张三"},
+			value: map[string]string{"Name": "张三"},
 			wantFunc: func(t *testing.T, key string) interface{} {
 				want := map[string]string{}
 				err := c.Get(ctx, key, &want)
@@ -159,8 +158,8 @@ func TestDifferentDataTypes(t *testing.T) {
 			},
 		},
 		{
-			name:  "string 验证",
-			key:   "string",
+			name:  "Name 验证",
+			key:   "Name",
 			value: "hello word",
 			wantFunc: func(t *testing.T, key string) interface{} {
 				var got string
@@ -180,7 +179,7 @@ func TestDifferentDataTypes(t *testing.T) {
 			}
 			want := test.wantFunc(t, test.key)
 			if !reflect.DeepEqual(test.value, want) {
-				t.Errorf("name = %v, value =%v,want = %v", test.name, test.value, want)
+				t.Errorf("Name = %v, value =%v,want = %v", test.name, test.value, want)
 			}
 			err = c.Del(ctx, test.key)
 			if err != nil {
