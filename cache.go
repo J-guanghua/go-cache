@@ -58,7 +58,7 @@ func (c *cache) buildKey(ctx context.Context, key string) string {
 	return strings.Join([]string{c.name, key}, ".")
 }
 
-func (c *cache) before(ctx context.Context, in *envet) error {
+func (c *cache) before(ctx context.Context, in *action) error {
 	for _, o := range c.calls {
 		if err := o.before(ctx, in); err != nil {
 			return err
@@ -67,7 +67,7 @@ func (c *cache) before(ctx context.Context, in *envet) error {
 	return nil
 }
 
-func (c *cache) after(ctx context.Context, in *envet) {
+func (c *cache) after(ctx context.Context, in *action) {
 	for _, o := range c.calls {
 		o.after(ctx, in)
 	}
@@ -75,17 +75,17 @@ func (c *cache) after(ctx context.Context, in *envet) {
 
 func (c *cache) Get(ctx context.Context, key string, v interface{}) error {
 	key = c.buildKey(ctx, key)
-	return func(ctx context.Context, in *envet) error {
-		defer c.after(ctx, in)
+	return func(ctx context.Context, in *action) error {
 		if err := c.before(ctx, in); err != nil {
 			return err
 		}
+		defer c.after(ctx, in)
 		in.value, in.err = c.store.Get(ctx, key)
 		if in.err != nil {
 			return in.err
 		}
 		return c.codec.Unmarshal(in.value, v)
-	}(ctx, &envet{
+	}(ctx, &action{
 		name:   c.name,
 		key:    key,
 		method: "GET",
@@ -94,21 +94,21 @@ func (c *cache) Get(ctx context.Context, key string, v interface{}) error {
 
 func (c *cache) Set(ctx context.Context, key string, v interface{}) error {
 	key = c.buildKey(ctx, key)
-	return func(ctx context.Context, in *envet) error {
+	return func(ctx context.Context, in *action) error {
+		if err := c.before(ctx, in); err != nil {
+			return err
+		}
+		defer c.after(ctx, in)
 		in.value, in.err = c.codec.Marshal(v)
 		if in.err != nil {
 			return in.err
-		}
-		defer c.after(ctx, in)
-		if err := c.before(ctx, in); err != nil {
-			return err
 		}
 		in.err = c.store.Set(ctx, key, in.value, in.extpiex)
 		if in.err != nil {
 			return in.err
 		}
 		return nil
-	}(ctx, &envet{
+	}(ctx, &action{
 		key:     key,
 		name:    c.name,
 		method:  "SET",
@@ -118,17 +118,17 @@ func (c *cache) Set(ctx context.Context, key string, v interface{}) error {
 
 func (c *cache) Del(ctx context.Context, key string) error {
 	key = c.buildKey(ctx, key)
-	return func(ctx context.Context, in *envet) error {
-		defer c.after(ctx, in)
+	return func(ctx context.Context, in *action) error {
 		if err := c.before(ctx, in); err != nil {
 			return err
 		}
+		defer c.after(ctx, in)
 		in.err = c.store.Del(ctx, key)
 		if in.err != nil {
 			return in.err
 		}
 		return nil
-	}(ctx, &envet{
+	}(ctx, &action{
 		name:   c.name,
 		key:    key,
 		method: "DELITE",
@@ -136,8 +136,18 @@ func (c *cache) Del(ctx context.Context, key string) error {
 }
 
 func (c *cache) Flush(ctx context.Context, pattern Key) error {
+	in := &action{
+		name:   c.name,
+		key:    pattern.string(),
+		method: "FLUSH",
+	}
 	key := c.buildKey(ctx, pattern.string())
-	return c.store.Flush(ctx, key)
+	if err := c.before(ctx, in); err != nil {
+		return err
+	}
+	defer c.after(ctx, in)
+	in.err = c.store.Flush(ctx, key)
+	return in.err
 }
 
 func (c *cache) Take(ctx context.Context, key string, fn VFunc, v interface{}) error {

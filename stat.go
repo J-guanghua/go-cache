@@ -12,12 +12,12 @@ type statTop struct {
 	keyTop   map[string]int64
 }
 
-func (s *statTop) before (envet Envet) {
+func (s *statTop) before(envet Action) {
 	s.total++
 	s.keyTop[envet.Key()]++
 }
 
-func (s *statTop) after (envet Envet) {
+func (s *statTop) after(envet Action) {
 	if envet.Err() != nil {
 		s.errTotal++
 	}
@@ -41,13 +41,13 @@ func NewStat() *cacheStat {
 	}
 }
 
-func (stat *cacheStat) before(ctx context.Context, envet Envet) error {
+func (stat *cacheStat) before(ctx context.Context, envet Action) error {
 	stat.total++
 	stat.method[envet.Method()].before(envet)
 	return nil
 }
 
-func (stat *cacheStat) after(ctx context.Context, envet Envet) {
+func (stat *cacheStat) after(ctx context.Context, envet Action) {
 	if err := envet.Err(); err != nil {
 		stat.errTotal++
 		stat.errs[err.Error()]++

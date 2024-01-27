@@ -12,10 +12,10 @@ type (
 	Option     func(c *cache)
 	VFunc      func(ctx context.Context) (interface{}, error)
 	CallOption interface {
-		before(context.Context, Envet) error
-		after(context.Context, Envet)
+		before(context.Context, Action) error
+		after(context.Context, Action)
 	}
-	Envet interface {
+	Action interface {
 		Err() error
 		Name() string
 		Key() string
@@ -65,7 +65,7 @@ func (*codec) Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
 }
 
-type envet struct {
+type action struct {
 	err     error
 	name    string
 	key     string
@@ -74,30 +74,30 @@ type envet struct {
 	extpiex time.Duration
 }
 
-func (e *envet) Name() string {
-	return e.name
+func (a *action) Name() string {
+	return a.name
 }
 
-func (e *envet) Key() string {
-	return e.key
+func (a *action) Key() string {
+	return a.key
 }
 
-func (e *envet) Method() string {
-	return e.method
+func (a *action) Method() string {
+	return a.method
 }
 
-func (e *envet) Err() error {
-	return e.err
+func (a *action) Err() error {
+	return a.err
 }
 
-func (e *envet) Value() []byte {
-	return e.value
+func (a *action) Value() []byte {
+	return a.value
 }
 
-func (e *envet) Extpiex() time.Duration {
-	return e.extpiex
+func (a *action) Extpiex() time.Duration {
+	return a.extpiex
 }
 
-func (e *envet) SetExtpiex(extpiex time.Duration) {
-	e.extpiex = extpiex
+func (a *action) SetExtpiex(extpiex time.Duration) {
+	a.extpiex = extpiex
 }
