@@ -15,5 +15,5 @@ func (k Key) Join(keys ...interface{}) string {
 }
 
 func (k Key) string() string {
-	return fmt.Sprintf("%s:", k)
+	return fmt.Sprintf("%s=", k)
 }

@@ -18,6 +18,26 @@ func testCache() Cache {
 	)
 }
 
+func TestCache(t *testing.T) {
+	caches := []Cache{
+		// NewCache(Name("redis")),
+		NewCache(Name("memory")),
+		NewCache(Name("file"), Store(store.NewFile())),
+		NewCache(Name("empty"), Store(store.NewEmpty())),
+	}
+	ctx := context.Background()
+	for i, c := range caches {
+		err := c.Set(ctx, Key("cache").Join(i), i)
+		if err != nil {
+			t.Error(err)
+		}
+		err = c.Del(ctx, Key("cache").Join(i))
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func TestSet(t *testing.T) {
 	c := testCache()
 	ctx := context.Background()

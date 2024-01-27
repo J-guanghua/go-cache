@@ -39,7 +39,7 @@ func Directory(cachePath string) FileOption {
 
 func NewFile(opts ...FileOption) Store {
 	fileCache := &fileStore{
-		directory: "./tmp",
+		directory: "./cache",
 		fileMode:  755,
 		level:     2,
 	}
