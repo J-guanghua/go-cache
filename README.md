@@ -26,7 +26,7 @@ To compile it from source:
     cd $GOPATH/src/github.com/J-guanghua/go-cache
     go get -u -v
     go build && go test -v
-### New
+### New cache interface
 ```go
     import (
         "github.com/J-guanghua/go-cache"
@@ -50,22 +50,30 @@ To compile it from source:
     caches = cache.NewCache(cache.Store(store.NewEmpty()))
         
 ```
-### New
+### reference
 ```go
-
+c := cache.NewCache(
+	Name("app"), // 当前服务名称 隔离不同服务缓存key,默认app
+	Calls(calls.NewLog(),calls.NewStat(), // 打印日志信息,缓存统计
+	cache.Duration(10 * time.Second), // 默认失效时间 10秒后
+)
+	
 ctx := context.Background()
-var value = map[string]interface{}{}
-var user = map[string]interface{}{"name":"张三"}
+user := map[string]interface{}{"name":"张三"}
 
-caches.Set(ctx,cache.Key("user").Join(1),user)
-err := caches.Get(ctx,cache.Key("user").Join(1),&value)
+// 设置 app.default#user-1  1秒后失效
+c.Set(ctx,"user-1",user,cache.SetDuration(time.Second))
+
+value := map[string]interface{}{}
+err := caches.Get(ctx,"user-1",&value)
 if err != nil {
     panic(err)
 }
 fmt.Println(value)
 
+// app.default#message  默认10秒 后失效
 var text string
-err = caches.Take(ctx,"message", func(ctx context.Context) (interface{}, error) {
+err = c.Take(ctx,"message", func(ctx context.Context) (interface{}, error) {
     return "Hello world",nil
 },&text)
 if err != nil {
@@ -81,6 +89,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/J-guanghua/go-cache"
+	"github.com/J-guanghua/go-cache/calls"
 	"github.com/J-guanghua/go-cache/store"
 	"log"
 )
@@ -99,12 +108,23 @@ type Users struct{
 	data map[int]user
 }
 
+func model() *Users {
+	return &Users{
+		user:cache.Key("users"),
+		cache:cache.NewCache(cache.Store(store.NewFile()),cache.Calls(calls.NewLog())),
+		data: map[int]user{
+			1:  user{1, 11, "test1"},
+			2:  user{2, 12, "test2"},
+		},
+	}
+}
+
 // 获取suer对象
 func(u *Users) getUser(ctx context.Context,id int)(user,error){
 	var user user
 	return user,u.cache.Take(ctx,u.user.Join(id),func(ctx context.Context)(interface{},error){
 		if us,ok :=u.data[id];ok {
-			defer u.cache.Set(ctx,"name",us.Name)
+			defer u.cache.Set(ctx,u.user.Join("name"),us.Name)
 			defer u.cache.Set(ctx,u.user.Join("age",id),us.Age)
 			log.Println(id,"执行数据user查询…………")
 			return us,nil
@@ -114,22 +134,17 @@ func(u *Users) getUser(ctx context.Context,id int)(user,error){
 }
 
 func main() {
-	users := &Users{
-		user:cache.Key("users"),
-		cache:cache.NewCache(cache.Store(store.NewFile()),cache.Calls(cache.NewLog())),
-		data: map[int]user{
-			1:  user{1, 11, "test1"},
-			2:  user{2, 12, "test2"},
-		},
-	}
+	users := model()
 	ctx := context.Background()
-	// 清除user缓存
-	defer users.cache.Flush(ctx,users.user)
-	// 获取suer对象
+	// 获取 app.users#2 对象
 	user,err := users.getUser(ctx,2)
 	if err != nil {
 		panic(err)
 	}
+	// 删除 app.user#2 缓存
+	defer users.cache.Del(ctx,users.user.Join(2))
+	// 清除前缀 app.users# 所有缓存（app.users#name,app.users#age）...
+	defer users.cache.Flush(ctx,users.user)
 	log.Println(user)
 }
 ```

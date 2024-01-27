@@ -7,7 +7,9 @@ import (
 
 type (
 	CallOption interface {
+		// Before call
 		Before(context.Context, Action) error
+		// post-call
 		After(context.Context, Action)
 	}
 	Action interface {
@@ -16,7 +18,7 @@ type (
 		Key() string
 		Method() string
 		Value() []byte
-		Extpiex() time.Duration
-		SetExtpiex(extpiex time.Duration)
+		Duration() time.Duration
+		SetDuration(extpiex time.Duration)
 	}
 )

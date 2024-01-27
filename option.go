@@ -26,9 +26,9 @@ func Calls(call ...calls.CallOption) Option {
 	}
 }
 
-func Extpiex(extpiex time.Duration) Option {
+func Duration(extpiex time.Duration) Option {
 	return func(c *cache) {
-		c.extpiex = extpiex
+		c.duration = extpiex
 	}
 }
 
@@ -54,17 +54,17 @@ func (*codec) Unmarshal(data []byte, v interface{}) error {
 }
 
 type action struct {
-	err     error
-	name    string
-	key     string
-	method  string
-	value   []byte
-	extpiex time.Duration
+	err      error
+	name     string
+	key      string
+	method   string
+	value    []byte
+	duration time.Duration
 }
 
 func SetDuration(duration time.Duration) func(*action) {
 	return func(a *action) {
-		a.extpiex = duration
+		a.duration = duration
 	}
 }
 
@@ -88,10 +88,10 @@ func (a *action) Value() []byte {
 	return a.value
 }
 
-func (a *action) Extpiex() time.Duration {
-	return a.extpiex
+func (a *action) Duration() time.Duration {
+	return a.duration
 }
 
-func (a *action) SetExtpiex(extpiex time.Duration) {
-	a.extpiex = extpiex
+func (a *action) SetDuration(duration time.Duration) {
+	a.duration = duration
 }

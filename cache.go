@@ -28,21 +28,21 @@ type Cache interface {
 
 // Cache 对象
 type cache struct {
-	name    string                  // name 标识名称
-	keyFunc func(key string) string // Key 自定义string算法
-	store   store.Store             // 只需要适配 store接口, 可支持yaml自定义配置
-	extpiex time.Duration           // 默认缓存失效时间
-	codec   Codec                   // 自定义序列化对象
-	calls   []calls.CallOption
+	name     string                  // name 标识名称
+	keyFunc  func(key string) string // Key 自定义string算法
+	store    store.Store             // 只需要适配 store接口, 可支持yaml自定义配置
+	duration time.Duration           // 默认缓存持续时间 duration 失效
+	codec    Codec                   // 自定义序列化对象
+	calls    []calls.CallOption
 }
 
 func NewCache(options ...Option) Cache {
 	codec := codec("json")
 	c := &cache{
-		name:    "app",
-		codec:   &codec,
-		store:   store.NewMemory(),
-		extpiex: 5 * time.Second,
+		name:     "app",
+		codec:    &codec,
+		store:    store.NewMemory(),
+		duration: 5 * time.Second,
 	}
 	for _, opt := range options {
 		opt(c)
@@ -96,7 +96,7 @@ func (c *cache) Get(ctx context.Context, key string, v interface{}) error {
 
 func (c *cache) Set(ctx context.Context, key string, v interface{}, opts ...func(*action)) error {
 	key = c.buildKey(ctx, key)
-	in := &action{key: key, name: c.name, method: "SET", extpiex: c.extpiex}
+	in := &action{key: key, name: c.name, method: "SET", duration: c.duration}
 	for _, opt := range opts {
 		opt(in)
 	}
@@ -108,7 +108,7 @@ func (c *cache) Set(ctx context.Context, key string, v interface{}, opts ...func
 		return err
 	}
 	defer c.after(ctx, in)
-	in.err = c.store.Set(ctx, key, in.value, in.extpiex)
+	in.err = c.store.Set(ctx, key, in.value, in.duration)
 	if in.err != nil {
 		return in.err
 	}
