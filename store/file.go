@@ -106,7 +106,7 @@ func (file *fileStore) Flush(_ context.Context, prefix string) error {
 	})
 }
 
-func (file *fileStore) Clear(_ context.Context) error {
+func (file *fileStore) Gc(_ context.Context) error {
 	return nil
 }
 

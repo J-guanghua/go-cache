@@ -58,7 +58,6 @@ func (memory *memoryStore) Del(_ context.Context, key string) error {
 func (memory *memoryStore) Flush(_ context.Context, prefix string) error {
 	memory.mutex.Lock()
 	defer memory.mutex.Unlock()
-	prefix = strings.Trim(prefix, "*") + "*"
 	for key := range memory.data {
 		if strings.HasPrefix(key, prefix) {
 			delete(memory.data, key)
