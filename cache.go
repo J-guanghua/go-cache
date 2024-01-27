@@ -101,14 +101,14 @@ func (c *cache) Set(ctx context.Context, key string, v interface{}, opts ...func
 	for _, opt := range opts {
 		opt(in)
 	}
-	if err := c.before(ctx, in); err != nil {
-		return err
-	}
-	defer c.after(ctx, in)
 	in.value, in.err = c.codec.Marshal(v)
 	if in.err != nil {
 		return in.err
 	}
+	if err := c.before(ctx, in); err != nil {
+		return err
+	}
+	defer c.after(ctx, in)
 	in.err = c.store.Set(ctx, key, in.value, in.extpiex)
 	if in.err != nil {
 		return in.err

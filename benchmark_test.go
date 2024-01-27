@@ -3,12 +3,14 @@ package cache
 import (
 	"context"
 	"fmt"
+	"github.com/J-guanghua/go-cache/calls"
 	"testing"
 )
 
 func benchmarkCache() Cache {
 	return NewCache(
 		Name("app"),
+		Calls(calls.NewLog()),
 	)
 }
 
@@ -17,7 +19,7 @@ func BenchmarkSet(b *testing.B) {
 	ctx := context.Background()
 	b.ReportAllocs()
 	for i := 0; i <= b.N; i++ {
-		key := Key("set").Join(i)
+		key := "benchmark"
 		if err := c.Set(ctx, key, i); err != nil {
 			b.Errorf("Set(%v,%v,%v): %v", ctx, key, i, err)
 		}
