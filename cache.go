@@ -49,6 +49,9 @@ func NewCache(options ...Option) Cache {
 }
 
 func (c *cache) buildKey(ctx context.Context, key string) string {
+	if keys := strings.Split(key, ":"); len(keys) <= 1 {
+		key = "default:" + key
+	}
 	if c.keyFunc != nil {
 		key = c.keyFunc(key)
 	}
