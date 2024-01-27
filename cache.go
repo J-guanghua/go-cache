@@ -11,11 +11,13 @@ import (
 	"github.com/J-guanghua/go-cache/store"
 )
 
+var ErrNotFound = store.ErrNotFound
+
 type Cache interface {
 	// 获取key,并将key对于的值映射到v对象,v可以是任何数据类型
 	Get(ctx context.Context, key string, v interface{}) error
 	// 设置key=v,并将存储到 store 持久化
-	Set(ctx context.Context, key string, v interface{}) error
+	Set(ctx context.Context, key string, v interface{}, as ...func(*action)) error
 	// 删除key 对应得 v
 	Del(ctx context.Context, key string) error
 	// 匹配清除带 pattern 前缀的可以集合
@@ -92,28 +94,25 @@ func (c *cache) Get(ctx context.Context, key string, v interface{}) error {
 	})
 }
 
-func (c *cache) Set(ctx context.Context, key string, v interface{}) error {
+func (c *cache) Set(ctx context.Context, key string, v interface{}, opts ...func(*action)) error {
 	key = c.buildKey(ctx, key)
-	return func(ctx context.Context, in *action) error {
-		if err := c.before(ctx, in); err != nil {
-			return err
-		}
-		defer c.after(ctx, in)
-		in.value, in.err = c.codec.Marshal(v)
-		if in.err != nil {
-			return in.err
-		}
-		in.err = c.store.Set(ctx, key, in.value, in.extpiex)
-		if in.err != nil {
-			return in.err
-		}
-		return nil
-	}(ctx, &action{
-		key:     key,
-		name:    c.name,
-		method:  "SET",
-		extpiex: c.extpiex,
-	})
+	in := &action{key: key, name: c.name, method: "SET", extpiex: c.extpiex}
+	for _, opt := range opts {
+		opt(in)
+	}
+	if err := c.before(ctx, in); err != nil {
+		return err
+	}
+	defer c.after(ctx, in)
+	in.value, in.err = c.codec.Marshal(v)
+	if in.err != nil {
+		return in.err
+	}
+	in.err = c.store.Set(ctx, key, in.value, in.extpiex)
+	if in.err != nil {
+		return in.err
+	}
+	return nil
 }
 
 func (c *cache) Del(ctx context.Context, key string) error {

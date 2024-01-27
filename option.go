@@ -74,6 +74,12 @@ type action struct {
 	extpiex time.Duration
 }
 
+func SetDuration(duration time.Duration) func(*action) {
+	return func(a *action) {
+		a.extpiex = duration
+	}
+}
+
 func (a *action) Name() string {
 	return a.name
 }

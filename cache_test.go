@@ -2,8 +2,10 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/J-guanghua/go-cache/store"
 )
@@ -28,6 +30,35 @@ func TestSet(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func TestSetDuration(t *testing.T) {
+	c := testCache()
+	value := time.Now()
+	ctx := context.Background()
+	key := Key("time").Join(value)
+	duration := SetDuration(time.Duration(100000000))
+	err := c.Set(ctx, key, value, duration)
+	if err != nil {
+		t.Error(err)
+	}
+
+	var result time.Time
+	err = c.Get(ctx, key, &result)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(value.Format("2006-01-02 15:04:05"), result.Format("2006-01-02 15:04:05")) {
+		t.Errorf("key = %v, result =%s,value = %s",
+			key, result.Format("2006-01-02 15:04:05"), value.Format("2006-01-02 15:04:05"))
+	}
+
+	time.Sleep(100000000)
+	err = c.Get(ctx, key, &result)
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("err = %v", err)
 	}
 }
 
