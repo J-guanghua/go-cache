@@ -58,7 +58,7 @@ func TestSetDuration(t *testing.T) {
 	value := time.Now()
 	ctx := context.Background()
 	key := Key("time").Join(value)
-	duration := SetDuration(time.Duration(100000000))
+	duration := SetDuration(time.Second)
 	err := c.Set(ctx, key, value, duration)
 	if err != nil {
 		t.Error(err)
@@ -75,7 +75,7 @@ func TestSetDuration(t *testing.T) {
 			key, result.Format("2006-01-02 15:04:05"), value.Format("2006-01-02 15:04:05"))
 	}
 
-	time.Sleep(100000000)
+	time.Sleep(time.Second)
 	err = c.Get(ctx, key, &result)
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("err = %v", err)
