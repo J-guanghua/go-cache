@@ -34,20 +34,20 @@ To compile it from source:
     )
 
     // new a cache object
-    caches := cache.NewCache()
+    c := cache.NewCache()
     
     // new a file cache object
-    caches = cache.NewCache(cache.Store(store.NewFile(store.Directory("./cache"))))
+    c = cache.NewCache(cache.Store(store.NewFile(store.Directory("./cache"))))
     
     // new a redis cache object
-    caches = cache.NewCache(cache.Store(
+    c = cache.NewCache(cache.Store(
         store.NewRedis(redis.NewClient(&redis.Options{
             Network: "tcp",
             Addr: "127.0.0.1:3306",
         }))),
     )
     // Turn off cache
-    caches = cache.NewCache(cache.Store(store.NewEmpty()))
+    c = cache.NewCache(cache.Store(store.NewEmpty()))
         
 ```
 ### reference
